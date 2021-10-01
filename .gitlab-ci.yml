@@ -5,9 +5,9 @@ services:
 
 ## Should contain at least these three stages for a basic CI/CD
 stages:
-  - build
+  - staging deploy
   - test
-  - deploy
+  - production deploy
 
 variables:
   ## Disable TLS Mode for DIND or enable using instructions from https://about.gitlab.com/releases/2019/07/31/docker-in-docker-with-docker-19-dot-03/

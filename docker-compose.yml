@@ -1,25 +1,12 @@
 version: '3.1'
-secrets:
-  nessus_user:
-    external: true
-  nessus_pwd:
-    external: true
-  nessus_activation_code:
-    external: true
 services:
   nessus:
     image: tenableofficial/nessus
     restart: always
-    container_name: nessus-scanner
+    container_name: nessus
     environment:
-      # USERNAME: /run/secrets/nessus_user
-      # PASSWORD: /run/secrets/nessus_pwd
-      # ACTIVATION_CODE: /run/secrets/nessus_activation_code
+      USERNAME: "ekelly@paraport.com"
+      PASSWORD: "104090Emma!!"
+      ACTIVATION_CODE: "VUK9-JX4L-ME4B-99GM"
     ports:
-      - 8834:8836
-    volumes: 
-      - ./config:/usr/bin/
-    secrets:
-      - nessus_user
-      - nessus_pwd
-      - nessus_activation_code
+      - 8834:8834
