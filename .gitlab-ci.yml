@@ -5,41 +5,38 @@ services:
 
 ## Should contain at least these three stages for a basic CI/CD
 stages:
-  - staging deploy
+  - staging
   - test
-  - production deploy
+  - production
 
 variables:
   ## Disable TLS Mode for DIND or enable using instructions from https://about.gitlab.com/releases/2019/07/31/docker-in-docker-with-docker-19-dot-03/
   DOCKER_TLS_CERTDIR: ""
 
 
-docker-build-production:
-  before_script:
-    ## Login to Gitlab Provided Container Registry for this project.
-    - docker login -u gitlab-ci-token -p "$CI_BUILD_TOKEN" "$CI_REGISTRY"
-    ## Install Docker Compose 
-    - which docker-compose || apk add --no-cache docker-compose
-
-  stage: build
+deploy-to-stage:
+  stage: staging
   script:
-    - docker-compose build --pull --compress --force-rm
-    - docker push "$CI_REGISTRY_IMAGE"/vote:latest
-    - docker push "$CI_REGISTRY_IMAGE"/result:latest
-    - docker push "$CI_REGISTRY_IMAGE"/worker:latest
+    - eval $(ssh-agent -s)
+    - echo "$SSH_STAGING_SERVER_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
+    - docker context create remote ‐‐docker “host=ssh://$SSH_STAGING_USER@SSH_STAGING_IP”
+    - docker-compose --context remote down --remove-orphans
+    - docker-compose --context remote pull
+    - docker-compose --context remote" up -d
 
   only:
     - master
 
 
-docker-test-production:
-  before_script:
-    ## Login to Gitlab Provided Container Registry for this project.
-    - docker login -u gitlab-ci-token -p "$CI_BUILD_TOKEN" "$CI_REGISTRY"
-    ## Install Docker Compose 
+staging-test: 
+  variables:
+    CONTAINER: nessus
+
   stage: test
   script:
-    - echo "Run Tests here..."
+    - scp test/is-alive.sh $SSH_STAGING_USER@SSH_STAGING_IP:/tmp
+    - ssh $SSH_STAGING_USER@SSH_STAGING_IP "sudo /bin/bash /tmp/is-alive.sh $CONTAINER"
+    - ssh $SSH_STAGING_USER@SSH_STAGING_IP "rm -rf /tmp/is-alive.sh"
 
   only:
     - master
@@ -51,16 +48,14 @@ docker-deploy-production:
     DOCKER_TLS_VERIFY: 1
 
 
-  stage: deploy
+  stage: production
   script:
-    # Copy Certs to access DEPLOYMENT_HOST
-    - mkdir -p ~/.docker
-    - echo "$TLSCACERT" > ~/.docker/ca.pem
-    - echo "$TLSCERT" > ~/.docker/cert.pem
-    - echo "$TLSKEY" > ~/.docker/key.pem
-    
-    - docker login -u gitlab-ci-token -p "$CI_BUILD_TOKEN" "$CI_REGISTRY"
-    - docker stack deploy --compose-file docker-stack.yml voting_app
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PROD_SERVER_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
+    - docker context create remote ‐‐docker “host=ssh://$SSH_PROD_USER@SSH_PROD_IP”
+    - docker-compose --context remote down --remove-orphans
+    - docker-compose --context remote pull
+    - docker-compose --context remote" up -d
 
   only:
     - master

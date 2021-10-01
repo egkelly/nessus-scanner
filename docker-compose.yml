@@ -5,8 +5,8 @@ services:
     restart: always
     container_name: nessus
     environment:
-      USERNAME: "ekelly@paraport.com"
-      PASSWORD: "104090Emma!!"
-      ACTIVATION_CODE: "VUK9-JX4L-ME4B-99GM"
+      USERNAME: ${NESSUS_USERNAME}
+      PASSWORD: ${NESSUS_PASSWORD}
+      ACTIVATION_CODE: ${NESSUS_ACTIVATION_CODE}
     ports:
       - 8834:8834

@@ -19,7 +19,7 @@ The following steps will run a local instance of the Nessus Server using the def
 1. Clone this repository.
 2. Change directory into the root of the project.
 3. Edit "environment" block to include your nessus username, password, and token
-3. Run the `docker-compose up` command.
+3. Run the `docker-compose up -d` command.
 
 ```bash
 git clone https://github.com/egkelly/nessus-scanner.git
@@ -29,6 +29,13 @@ docker-compose up -d
 
 After the Server has started, you can open the Nessus Scanner in your browser: [http://localhost:8834](http://localhost:8834).
 It will take several minutes to initialize the server plugins.
+
+## Test the installation
+
+From within the nessus-scanner directory, run `sudo bash test/is-alive.sh nessus`
+
+
+
 
 # Deploying Nessus from GitLab
 
@@ -58,8 +65,12 @@ web:
 ```
 - Default login is root, run `sudo docker exec -it gitlab grep 'Password:' /etc/gitlab/initial_root_password` to retrieve your password
 
-# Setup
+## Setup
 
 The following steps will configure the nessus deployment using GitLab pipelines (`gitlab-ci.yml`):
 
 1. Import the nessus-scanner GitHub repository project into GitLab
+2. Under Project Settings > CI/CD, create variables for `NESSUS_USER, NESSUS_PASSWORD, NESSUS_ACTIVATION_CODE, SSH_STAGING_SERVER_PRIVATE_KEY, SSH_PROD_SERVER_PRIVATE_KEY, SSH_STAGING_USER, SSH_PROD_USER, SSH_STAGING_IP, SSH_PROD_IP`
+3. Navigate to the project's CI/CD Pipeline and click "Run Pipeline"
+
+> **_NOTE:_** The pipeline does not actually work at this point in time
